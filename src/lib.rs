@@ -2,77 +2,33 @@ use std::mem;
 use std::ops::{
     Deref, DerefMut, Index, IndexMut, Range, RangeFrom, RangeInclusive, RangeTo, RangeToInclusive,
 };
-use std::slice::SliceIndex;
 
-pub struct RightPadString {
+pub struct PadString {
     s: String,
 }
 
-impl RightPadString {
-    pub fn push(&mut self, ch: char) {
-        let _ = self.s.pop();
-        self.s.push(ch);
-    }
-
-    pub fn pop(&mut self) -> Option<char> {
-        let _ = self.s.pop();
-        let ch = self.s.pop();
-        self.s.push('\0');
-        ch
-    }
-
-    pub fn as_str(&self) -> &str {
-        let total_len = self.s.len();
-        &self.s[0..total_len - 1]
-    }
-}
-
-impl From<String> for RightPadString {
+impl From<String> for PadString {
     fn from(mut s: String) -> Self {
         s.push('\0');
         Self { s }
     }
 }
 
-impl AsRef<PadStr> for RightPadString {
-    fn as_ref(&self) -> &PadStr {
-        let s: &str = self.as_str();
-        unsafe { std::mem::transmute(s) }
+impl Into<String> for PadString {
+    fn into(mut self) -> String {
+        let _ = self.s.pop();
+        self.s
     }
 }
 
-pub struct LeftPadString {
-    s: String,
-}
-
-impl LeftPadString {
-    pub fn push(&mut self, ch: char) {
-        self.s.push(ch);
-    }
-
-    pub fn pop(&mut self) -> Option<char> {
-        if self.s.len() == 1 {
-            None
-        } else {
-            self.s.pop()
-        }
-    }
-
+impl PadString {
     pub fn as_str(&self) -> &str {
-        &self.s[1..]
+        let total_len = self.s.len();
+        &self.s[0..total_len - 1]
     }
 }
 
-impl From<String> for LeftPadString {
-    fn from(s: String) -> Self {
-        let mut pad = String::new();
-        pad.push('\0');
-        pad.push_str(&s);
-        Self { s: pad }
-    }
-}
-
-impl AsRef<PadStr> for LeftPadString {
+impl AsRef<PadStr> for PadString {
     fn as_ref(&self) -> &PadStr {
         let s: &str = self.as_str();
         unsafe { std::mem::transmute(s) }
